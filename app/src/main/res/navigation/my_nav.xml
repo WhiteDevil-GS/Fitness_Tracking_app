@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/my_nav"
+    app:startDestination="@id/home_fragment">
+
+    <!-- Home Fragment -->
+    <fragment
+        android:id="@+id/home_fragment"
+        android:name="com.atilmohamine.fitnesstracker.ui.Home"
+        android:label="Home"
+        tools:layout="@layout/fragment_home" />
+
+    <!-- Statistics Fragment -->
+    <fragment
+        android:id="@+id/statistics_fragment"
+        android:name="com.atilmohamine.fitnesstracker.ui.Statistics"
+        android:label="Statistics"
+        tools:layout="@layout/fragment_statistics" />
+
+    <!-- Settings Fragment -->
+    <fragment
+        android:id="@+id/setting_fragment"
+        android:name="com.atilmohamine.fitnesstracker.ui.Setting"
+        android:label="Settings"
+        tools:layout="@layout/fragment_setting" />
+
+    <!-- Video Suggestions Fragment -->
+    <fragment
+        android:id="@+id/videoSuggestions_fragment"
+        android:name="com.atilmohamine.fitnesstracker.ui.VideoSuggestions"
+        android:label="Video Suggestions"
+        tools:layout="@layout/fragment_video_suggestions" />
+</navigation>

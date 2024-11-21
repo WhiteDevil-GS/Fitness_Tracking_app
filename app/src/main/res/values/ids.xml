@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="videoSuggestionsFragment" type="id" />
+    <item name="video_suggestions" type="id" />
+    <item name="home" type="id" />
+    <item name="statistics" type="id" />
+    <item name="settings" type="id" />
+</resources>
