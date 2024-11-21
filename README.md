@@ -12,7 +12,11 @@ Welcome to the **Fitness Tracking App**! This Android app helps users monitor th
 - **Customizable Goals**: Users can update their step goals through an intuitive interface.
 
 ## 📸 Screenshots
-_Add screenshots of your app's UI here._
+![WhatsApp Image 2024-11-21 at 5 48 35 PM (2)](https://github.com/user-attachments/assets/097a6d02-35c5-4710-900c-3597f45f34f3)
+![WhatsApp Image 2024-11-21 at 5 48 34 PM](https://github.com/user-attachments/assets/91b602b7-9640-4838-b709-95ca3c3ec357)
+![WhatsApp Image 2024-11-21 at 5 48 35 PM](https://github.com/user-attachments/assets/0756a54d-4024-42e3-834b-ada16065c00c)
+![WhatsApp Image 2024-11-21 at 5 48 35 PM (1)](https://github.com/user-attachments/assets/88a8cae7-b889-4e1e-a1ba-360930089dc1)
+
 
 ## 🚀 Getting Started
 
