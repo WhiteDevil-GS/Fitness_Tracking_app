@@ -46,13 +46,16 @@ The app follows **MVVM (Model-View-ViewModel)** architecture for clean separatio
 ├── ui/
 │   ├── Home.kt
 │   ├── Setting.kt
+│   └── .....
 │   └── fragments/
+│          └── ....
 ├── viewmodel/
 │   └── FitnessViewModel.kt
 └── res/
     ├── layout/
     ├── values/
     └── drawable/
+    └── ........
 ```
 
 ## 💡 How It Works
