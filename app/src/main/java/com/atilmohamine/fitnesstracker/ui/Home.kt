@@ -77,22 +77,12 @@ class Home : Fragment(), SensorEventListener {
 
         // Observe changes to the daily fitness data
         fitnessViewModel.getDailyFitnessData(requireContext()).observe(viewLifecycleOwner, Observer { dailyFitness ->
-            // Update UI with daily fitness data
-            val caloriesBurned = dailyFitness.caloriesBurned
-            val distance = dailyFitness.distance
-
-            textViewCalories.text = caloriesBurned.toString()
-
-            // Optionally convert distance to kilometers or miles
-            val formattedDistance = String.format("%.2f", distance) // Change this based on user preference
-            textViewDistance.text = formattedDistance
-
+            val goalSteps = fitnessViewModel.loadObjectiveSteps(requireContext())
             // Update the progress bar with the current step count
             stepsProgressBar.progress = stepCount
 
             // Check if the user has reached their step goal
             if (stepCount >= goalSteps) {
-                // Display a message when the step goal is reached
                 Toast.makeText(requireContext(), "Congratulations! You've reached your step goal!", Toast.LENGTH_SHORT).show()
             }
         })
@@ -104,16 +94,30 @@ class Home : Fragment(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
         if (event.sensor.type == Sensor.TYPE_STEP_COUNTER) {
-            // Get the step count from the sensor event
             stepCount = event.values[0].toInt()
 
             // Save the updated step count in SharedPreferences
             sharedPreferences.edit().putInt("stepCount", stepCount).apply()
 
-            // Update the UI with the new step count
-            textViewSteps.text = stepCount.toString()
-            textViewStepsBig.text = stepCount.toString()
+            // Update UI
+            updateStepData(stepCount)
         }
+    }
+
+    private fun updateStepData(steps: Int) {
+        textViewSteps.text = steps.toString()
+        textViewStepsBig.text = steps.toString()
+
+        // Calculate calories burned (assuming ~0.04 calories per step)
+        val caloriesBurned = steps * 0.04
+        textViewCalories.text = String.format("%.2f", caloriesBurned)
+
+        // Calculate distance (assuming average step length ~0.78 meters)
+        val distance = steps * 0.78 / 1000 // Convert to kilometers
+        textViewDistance.text = String.format("%.2f km", distance)
+
+        // Update the progress bar
+        stepsProgressBar.progress = steps
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
@@ -122,7 +126,6 @@ class Home : Fragment(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
-        // Register the sensor listener when the fragment is in the foreground
         stepSensor?.let {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
         }
@@ -130,7 +133,6 @@ class Home : Fragment(), SensorEventListener {
 
     override fun onPause() {
         super.onPause()
-        // Unregister the sensor listener when the fragment is not in the foreground
         sensorManager.unregisterListener(this)
     }
 }
