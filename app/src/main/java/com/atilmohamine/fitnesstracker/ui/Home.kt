@@ -38,22 +38,22 @@ class Home : Fragment(), SensorEventListener {
         super.onCreate(savedInstanceState)
         sharedPreferences = requireContext().getSharedPreferences("FitnessData", 0)
 
-        // Check if it's a new day to reset the step count
+        // Check if it's a new day to reset the step count and goal flag
         val currentDay = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
         val savedDay = sharedPreferences.getInt("savedDay", -1)
         if (currentDay != savedDay) {
-            // Save new baseline step count for the new day
-            sharedPreferences.edit().putInt("baselineStepCount", 0).apply()
-            sharedPreferences.edit().putInt("savedDay", currentDay).apply()
+            sharedPreferences.edit().apply {
+                putInt("baselineStepCount", 0)
+                putInt("savedDay", currentDay)
+                putBoolean("goalReached", false) // Reset goal flag for new day
+            }.apply()
         }
     }
 
-
-
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val rootView = inflater.inflate(R.layout.fragment_home, container, false)
 
         textViewSteps = rootView.findViewById(R.id.steps)
@@ -62,56 +62,36 @@ class Home : Fragment(), SensorEventListener {
         textViewDistance = rootView.findViewById(R.id.distance)
         stepsProgressBar = rootView.findViewById(R.id.stepsProgressBar)
 
-        // Fetch the user's step goal (maximum steps)
         val goalSteps = fitnessViewModel.loadObjectiveSteps(requireContext())
         stepsProgressBar.max = goalSteps
 
-        // Initialize the SensorManager and step counter sensor
         sensorManager = requireActivity().getSystemService(SensorManager::class.java)
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
-        // Start listening to the step sensor
         stepSensor?.also { sensor ->
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
         }
 
-        // Observe changes to the daily fitness data
         fitnessViewModel.getDailyFitnessData(requireContext()).observe(viewLifecycleOwner, Observer { dailyFitness ->
-            val goalSteps = fitnessViewModel.loadObjectiveSteps(requireContext())
-            // Update the progress bar with the current step count
             stepsProgressBar.progress = stepCount
-
-            // Check if the user has reached their step goal
-            if (stepCount >= goalSteps) {
-                Toast.makeText(requireContext(), "Congratulations! You've reached your step goal!", Toast.LENGTH_SHORT).show()
-            }
         })
 
         return rootView
     }
 
-    // SensorEventListener methods to track steps
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
         if (event.sensor.type == Sensor.TYPE_STEP_COUNTER) {
-            // Get cumulative steps from the sensor
             val cumulativeSteps = event.values[0].toInt()
-
-            // Get the baseline step count
             val baselineSteps = sharedPreferences.getInt("baselineStepCount", 0)
 
-            // Calculate steps for the current session/day
             if (baselineSteps == 0) {
-                // Set baseline if it's not already set
                 sharedPreferences.edit().putInt("baselineStepCount", cumulativeSteps).apply()
             }
 
-            stepCount = cumulativeSteps - sharedPreferences.getInt("baselineStepCount", 0)
-
-            // Save the updated step count in SharedPreferences
+            stepCount = cumulativeSteps - baselineSteps
             sharedPreferences.edit().putInt("stepCount", stepCount).apply()
 
-            // Update UI
             updateStepData(stepCount)
         }
     }
@@ -120,21 +100,24 @@ class Home : Fragment(), SensorEventListener {
         textViewSteps.text = steps.toString()
         textViewStepsBig.text = steps.toString()
 
-        // Calculate calories burned (assuming ~0.04 calories per step)
         val caloriesBurned = steps * 0.04
         textViewCalories.text = String.format("%.2f", caloriesBurned)
 
-        // Calculate distance (assuming average step length ~0.78 meters)
         val distance = steps * 0.78 / 1000 // Convert to kilometers
         textViewDistance.text = String.format("%.2f km", distance)
 
-        // Update the progress bar
         stepsProgressBar.progress = steps
+
+        val goalSteps = fitnessViewModel.loadObjectiveSteps(requireContext())
+        val goalReached = sharedPreferences.getBoolean("goalReached", false)
+
+        if (steps >= goalSteps && !goalReached) {
+            Toast.makeText(requireContext(), "Congratulations! You've reached your step goal!", Toast.LENGTH_SHORT).show()
+            sharedPreferences.edit().putBoolean("goalReached", true).apply() // Mark goal as reached
+        }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Optionally handle sensor accuracy changes
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     override fun onResume() {
         super.onResume()
