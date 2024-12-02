@@ -40,7 +40,7 @@ class Statistics : Fragment() {
         val entries = ArrayList<BarEntry>()
 
         // Example hourly data (replace with actual user activity data)
-        val hourlyData = listOf(100, 200, 150, 300, 400, 250, 600)
+        val hourlyData = listOf(224, 456, 520, 400, 256, 44, 300)
         hourlyData.forEachIndexed { index, value ->
             entries.add(BarEntry(index.toFloat(), value.toFloat()))
         }
