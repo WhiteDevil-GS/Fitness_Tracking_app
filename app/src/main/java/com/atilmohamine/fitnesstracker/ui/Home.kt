@@ -42,14 +42,14 @@ class Home : Fragment(), SensorEventListener {
         val currentDay = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
         val savedDay = sharedPreferences.getInt("savedDay", -1)
         if (currentDay != savedDay) {
-            // Reset step count for new day
-            stepCount = 0
-            sharedPreferences.edit().putInt("stepCount", stepCount).apply()
+            // Save new baseline step count for the new day
+            sharedPreferences.edit().putInt("baselineStepCount", 0).apply()
             sharedPreferences.edit().putInt("savedDay", currentDay).apply()
-        } else {
-            stepCount = sharedPreferences.getInt("stepCount", 0) // Load saved step count if available
         }
     }
+
+
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -94,7 +94,19 @@ class Home : Fragment(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
         if (event.sensor.type == Sensor.TYPE_STEP_COUNTER) {
-            stepCount = event.values[0].toInt()
+            // Get cumulative steps from the sensor
+            val cumulativeSteps = event.values[0].toInt()
+
+            // Get the baseline step count
+            val baselineSteps = sharedPreferences.getInt("baselineStepCount", 0)
+
+            // Calculate steps for the current session/day
+            if (baselineSteps == 0) {
+                // Set baseline if it's not already set
+                sharedPreferences.edit().putInt("baselineStepCount", cumulativeSteps).apply()
+            }
+
+            stepCount = cumulativeSteps - sharedPreferences.getInt("baselineStepCount", 0)
 
             // Save the updated step count in SharedPreferences
             sharedPreferences.edit().putInt("stepCount", stepCount).apply()
