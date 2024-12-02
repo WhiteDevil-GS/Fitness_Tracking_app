@@ -56,6 +56,7 @@ class Home : Fragment(), SensorEventListener {
     ): View? {
         val rootView = inflater.inflate(R.layout.fragment_home, container, false)
 
+        // Initialize UI components
         textViewSteps = rootView.findViewById(R.id.steps)
         textViewStepsBig = rootView.findViewById(R.id.steps_big)
         textViewCalories = rootView.findViewById(R.id.burned_calories)
@@ -65,9 +66,18 @@ class Home : Fragment(), SensorEventListener {
         val goalSteps = fitnessViewModel.loadObjectiveSteps(requireContext())
         stepsProgressBar.max = goalSteps
 
+        // Retrieve saved data from SharedPreferences
+        val savedSteps = sharedPreferences.getInt("stepCount", 0)
+        val goalReached = sharedPreferences.getBoolean("goalReached", false)
+
+        // Update the UI with saved data
+        updateStepData(savedSteps)
+
+        // Initialize SensorManager and step sensor
         sensorManager = requireActivity().getSystemService(SensorManager::class.java)
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
+        // Register the sensor listener
         stepSensor?.also { sensor ->
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
         }
@@ -78,6 +88,7 @@ class Home : Fragment(), SensorEventListener {
 
         return rootView
     }
+
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
