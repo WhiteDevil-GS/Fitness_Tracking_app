@@ -8,14 +8,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.atilmohamine.fitnesstracker.R
 import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.data.*
 
 class Statistics : Fragment() {
 
@@ -33,6 +29,10 @@ class Statistics : Fragment() {
         val pieChart = rootView.findViewById<PieChart>(R.id.pieChart)
         pieChart?.let { setupPieChart(it) }
 
+        // LineChart for progress over time
+        val lineChart = rootView.findViewById<LineChart>(R.id.lineChart)
+        lineChart?.let { setupLineChart(it) }
+
         return rootView
     }
 
@@ -45,7 +45,7 @@ class Statistics : Fragment() {
             entries.add(BarEntry(index.toFloat(), value.toFloat()))
         }
 
-        val barDataSet = BarDataSet(entries, "Hourly Steps").apply {
+        val barDataSet = BarDataSet(entries, "Weekly Steps").apply {
             color = Color.BLUE
             valueTextColor = Color.BLACK
             valueTextSize = 12f
@@ -55,7 +55,7 @@ class Statistics : Fragment() {
         barChart.data = barData
 
         barChart.description = Description().apply {
-            text = "Steps per Hour"
+            text = ""
             textColor = Color.WHITE
             textSize = 12f
         }
@@ -101,4 +101,33 @@ class Statistics : Fragment() {
         pieChart.animateY(1000)
     }
 
+    private fun setupLineChart(lineChart: LineChart) {
+        val entries = ArrayList<Entry>()
+
+        // Example progress over time data (replace with actual user data)
+        val weeklyProgress = listOf(3.5f, 4.2f, 5.1f, 5.8f, 6.3f, 7.0f, 7.5f) // Example data
+        weeklyProgress.forEachIndexed { index, value ->
+            entries.add(Entry(index.toFloat(), value))
+        }
+
+        val lineDataSet = LineDataSet(entries, "Weekly Progress").apply {
+            color = Color.GREEN
+            valueTextColor = Color.BLACK
+            valueTextSize = 12f
+            lineWidth = 2f
+            setCircleColor(Color.RED)
+            circleRadius = 4f
+        }
+
+        val lineData = LineData(lineDataSet)
+        lineChart.data = lineData
+
+        lineChart.description = Description().apply {
+            text = "Weekly Progress"
+            textColor = Color.WHITE
+            textSize = 12f
+        }
+
+        lineChart.animateX(1000)
+    }
 }
