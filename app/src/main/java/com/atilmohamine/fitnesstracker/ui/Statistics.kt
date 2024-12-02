@@ -127,7 +127,6 @@ class Statistics : Fragment() {
             textColor = Color.WHITE
             textSize = 12f
         }
-
         lineChart.animateX(1000)
     }
 }
