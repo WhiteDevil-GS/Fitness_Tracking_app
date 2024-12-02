@@ -115,7 +115,7 @@ class Home : Fragment(), SensorEventListener {
         textViewCalories.text = String.format("%.2f", caloriesBurned)
 
         val distance = steps * 0.78 / 1000 // Convert to kilometers
-        textViewDistance.text = String.format("%.2f km", distance)
+        textViewDistance.text = String.format("%.2f", distance)
 
         stepsProgressBar.progress = steps
 
