@@ -38,100 +38,91 @@ class Home : Fragment(), SensorEventListener {
         super.onCreate(savedInstanceState)
         sharedPreferences = requireContext().getSharedPreferences("FitnessData", 0)
 
-        // Check if it's a new day to reset the step count and goal flag
+        // Check if it's a new day to reset the step count
         val currentDay = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
         val savedDay = sharedPreferences.getInt("savedDay", -1)
         if (currentDay != savedDay) {
-            sharedPreferences.edit().apply {
-                putInt("baselineStepCount", 0)
-                putInt("savedDay", currentDay)
-                putBoolean("goalReached", false) // Reset goal flag for new day
-            }.apply()
+            // Reset step count for new day
+            stepCount = 0
+            sharedPreferences.edit().putInt("stepCount", stepCount).apply()
+            sharedPreferences.edit().putInt("savedDay", currentDay).apply()
+        } else {
+            stepCount = sharedPreferences.getInt("stepCount", 0) // Load saved step count if available
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
+        // Inflate the layout for this fragment
         val rootView = inflater.inflate(R.layout.fragment_home, container, false)
 
-        // Initialize UI components
         textViewSteps = rootView.findViewById(R.id.steps)
         textViewStepsBig = rootView.findViewById(R.id.steps_big)
         textViewCalories = rootView.findViewById(R.id.burned_calories)
         textViewDistance = rootView.findViewById(R.id.distance)
         stepsProgressBar = rootView.findViewById(R.id.stepsProgressBar)
 
+        // Fetch the user's step goal (maximum steps)
         val goalSteps = fitnessViewModel.loadObjectiveSteps(requireContext())
         stepsProgressBar.max = goalSteps
 
-        // Retrieve saved data from SharedPreferences
-        val savedSteps = sharedPreferences.getInt("stepCount", 0)
-        val goalReached = sharedPreferences.getBoolean("goalReached", false)
-
-        // Update the UI with saved data
-        updateStepData(savedSteps)
-
-        // Initialize SensorManager and step sensor
+        // Initialize the SensorManager and step counter sensor
         sensorManager = requireActivity().getSystemService(SensorManager::class.java)
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
-        // Register the sensor listener
+        // Start listening to the step sensor
         stepSensor?.also { sensor ->
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
         }
 
+        // Observe changes to the daily fitness data
         fitnessViewModel.getDailyFitnessData(requireContext()).observe(viewLifecycleOwner, Observer { dailyFitness ->
+            // Update UI with daily fitness data
+            val caloriesBurned = dailyFitness.caloriesBurned
+            val distance = dailyFitness.distance
+
+            textViewCalories.text = caloriesBurned.toString()
+
+            // Optionally convert distance to kilometers or miles
+            val formattedDistance = String.format("%.2f", distance) // Change this based on user preference
+            textViewDistance.text = formattedDistance
+
+            // Update the progress bar with the current step count
             stepsProgressBar.progress = stepCount
+
+            // Check if the user has reached their step goal
+            if (stepCount >= goalSteps) {
+                // Display a message when the step goal is reached
+                Toast.makeText(requireContext(), "Congratulations! You've reached your step goal!", Toast.LENGTH_SHORT).show()
+            }
         })
 
         return rootView
     }
 
-
+    // SensorEventListener methods to track steps
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
         if (event.sensor.type == Sensor.TYPE_STEP_COUNTER) {
-            val cumulativeSteps = event.values[0].toInt()
-            val baselineSteps = sharedPreferences.getInt("baselineStepCount", 0)
+            // Get the step count from the sensor event
+            stepCount = event.values[0].toInt()
 
-            if (baselineSteps == 0) {
-                sharedPreferences.edit().putInt("baselineStepCount", cumulativeSteps).apply()
-            }
-
-            stepCount = cumulativeSteps - baselineSteps
+            // Save the updated step count in SharedPreferences
             sharedPreferences.edit().putInt("stepCount", stepCount).apply()
 
-            updateStepData(stepCount)
+            // Update the UI with the new step count
+            textViewSteps.text = stepCount.toString()
+            textViewStepsBig.text = stepCount.toString()
         }
     }
 
-    private fun updateStepData(steps: Int) {
-        textViewSteps.text = steps.toString()
-        textViewStepsBig.text = steps.toString()
-
-        val caloriesBurned = steps * 0.04
-        textViewCalories.text = String.format("%.2f", caloriesBurned)
-
-        val distance = steps * 0.78 / 1000 // Convert to kilometers
-        textViewDistance.text = String.format("%.2f km", distance)
-
-        stepsProgressBar.progress = steps
-
-        val goalSteps = fitnessViewModel.loadObjectiveSteps(requireContext())
-        val goalReached = sharedPreferences.getBoolean("goalReached", false)
-
-        if (steps >= goalSteps && !goalReached) {
-            Toast.makeText(requireContext(), "Congratulations! You've reached your step goal!", Toast.LENGTH_SHORT).show()
-            sharedPreferences.edit().putBoolean("goalReached", true).apply() // Mark goal as reached
-        }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        // Optionally handle sensor accuracy changes
     }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     override fun onResume() {
         super.onResume()
+        // Register the sensor listener when the fragment is in the foreground
         stepSensor?.let {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
         }
@@ -139,6 +130,7 @@ class Home : Fragment(), SensorEventListener {
 
     override fun onPause() {
         super.onPause()
+        // Unregister the sensor listener when the fragment is not in the foreground
         sensorManager.unregisterListener(this)
     }
 }
